@@ -32,13 +32,13 @@ order-management-backend/
 `Step:1` For development purpose
 
 ```typescript
-yarn start:dev
+ npm run start:dev
 ```
 
 `Step:2` For Production
 
 ```typescript
-yarn start
+yarn build
 ```
 
 #### API Link :

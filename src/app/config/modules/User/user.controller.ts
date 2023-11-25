@@ -27,7 +27,7 @@ const createUser = async (req: Request, res: Response) => {
     const user = req.body
 
     const userValidation = userValidationSchema.parse(user)
-    const result = await userService.createUser(userValidation)
+    const result = await userService.createNewUser(userValidation)
     res.status(201).json({
       success: true,
       data: result,
@@ -44,7 +44,7 @@ const createUser = async (req: Request, res: Response) => {
 const getUser = async (req: Request, res: Response) => {
   try {
     const id = req.params.userId
-    const result = await userService.getAllUser(id)
+    const result = await userService.deleteSingleUser(id)
     res.status(200).json({
       success: true,
       data: result,

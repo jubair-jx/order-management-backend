@@ -2,23 +2,25 @@ import mongoose from 'mongoose'
 
 import TUser, { TProduct } from './user.interface'
 import user from '../user.model'
+//get all users
 const getUsers = async () => {
   const result = await user.find()
   return result
 }
-
-const createUser = async (userData: TUser) => {
+//create a new user
+const createNewUser = async (userData: TUser) => {
   const result = await user.create(userData)
   return result
 }
-const getAllUser = async (id: string) => {
+// get a single user
+const getSingleUser = async (id: string) => {
   const result = await user.find({
     _id: new mongoose.Types.ObjectId(id),
     isActive: true,
   })
   return result
 }
-
+//update a single user
 const updateSingleUser = async (id: string, userData: object) => {
   const updatedData = await user.updateOne(
     {
@@ -42,7 +44,7 @@ const updateSingleUser = async (id: string, userData: object) => {
     return Promise.reject('user Not Found')
   }
 }
-
+//delete a single user
 const deleteSingleUser = async (id: string) => {
   const existUser = await user.findOne({
     _id: new mongoose.Types.ObjectId(id),
@@ -56,6 +58,7 @@ const deleteSingleUser = async (id: string) => {
     return Promise.reject('User not found')
   }
 }
+//get order function
 const getOrders = async (id: string) => {
   const existUser = await user.findById(id)
   if (existUser) {
@@ -69,7 +72,7 @@ const getOrders = async (id: string) => {
     return Promise.reject('User Not Found')
   }
 }
-
+//get add orders function
 const addOrders = async (id: string, product: TProduct) => {
   const existUser = await user.findById(id)
   if (existUser && product) {
@@ -84,6 +87,7 @@ const addOrders = async (id: string, product: TProduct) => {
     return product
   }
 }
+//get total price functiona
 const getTotalPrice = async (id: string) => {
   const existUser = await user.findById(id)
   if (existUser) {
@@ -111,8 +115,8 @@ const getTotalPrice = async (id: string) => {
 }
 const userService = {
   getUsers,
-  createUser,
-  getAllUser,
+  createNewUser,
+  getSingleUser,
   updateSingleUser,
   deleteSingleUser,
   getOrders,
