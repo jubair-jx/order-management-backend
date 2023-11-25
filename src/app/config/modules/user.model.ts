@@ -5,7 +5,8 @@ import {
   TOrder,
   TUserData,
 } from './User/user.interface'
-
+import bcrypt from 'bcrypt'
+import config from '..'
 //name schema information
 const nameSchema = new Schema<TFullName>(
   {
@@ -52,7 +53,11 @@ const orderInfoSchema = new Schema<TOrder>(
 const userSchema = new Schema<TUserData>({
   userId: { type: Number, required: true, unique: true },
   username: { type: String, required: true, unique: true },
-  password: { type: String, required: true },
+  password: {
+    type: String,
+    required: true,
+    maxlength: [20, 'Password More than 20 Charc Will be Accepted'],
+  },
   fullName: {
     type: nameSchema,
     required: true,
@@ -68,5 +73,15 @@ const userSchema = new Schema<TUserData>({
   address: addressInfoSchema,
   order: [orderInfoSchema],
 })
+//pre save middleware will on create
+
+userSchema.pre('save', async function (next) {
+  //hashing password and save into DB
+  const user = this
+  user.password = await bcrypt.hash(user.password, Number(config.saltKey))
+
+  next()
+})
+
 //Now we will make a model based on this Schema
 export const userModel = model<TUserData>('user', userSchema)
