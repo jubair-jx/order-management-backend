@@ -24,7 +24,7 @@ const getUsers = async (req: Request, res: Response) => {
 }
 const createUser = async (req: Request, res: Response) => {
   try {
-    const { user } = req.body
+    const user = req.body
 
     const userValidation = userValidationSchema.parse(user)
     const result = await userService.createUser(userValidation)
