@@ -11,7 +11,7 @@ const createUser = async (userData: TUser) => {
   const result = await user.create(userData)
   return result
 }
-const getUser = async (id: string) => {
+const getAllUser = async (id: string) => {
   const result = await user.find({
     _id: new mongoose.Types.ObjectId(id),
     isActive: true,
@@ -19,7 +19,7 @@ const getUser = async (id: string) => {
   return result
 }
 
-const updateUser = async (id: string, userData: object) => {
+const updateSingleUser = async (id: string, userData: object) => {
   const updatedData = await user.updateOne(
     {
       _id: new mongoose.Types.ObjectId(id),
@@ -43,7 +43,7 @@ const updateUser = async (id: string, userData: object) => {
   }
 }
 
-const deleteUser = async (id: string) => {
+const deleteSingleUser = async (id: string) => {
   const existUser = await user.findOne({
     _id: new mongoose.Types.ObjectId(id),
     isActive: true,
@@ -112,9 +112,9 @@ const getTotalPrice = async (id: string) => {
 const userService = {
   getUsers,
   createUser,
-  getUser,
-  updateUser,
-  deleteUser,
+  getAllUser,
+  updateSingleUser,
+  deleteSingleUser,
   getOrders,
   addOrders,
   getTotalPrice,

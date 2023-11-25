@@ -44,7 +44,7 @@ const createUser = async (req: Request, res: Response) => {
 const getUser = async (req: Request, res: Response) => {
   try {
     const id = req.params.userId
-    const result = await userService.getUser(id)
+    const result = await userService.getAllUser(id)
     res.status(200).json({
       success: true,
       data: result,
@@ -66,7 +66,7 @@ const updateUser = async (req: Request, res: Response) => {
   try {
     const userData = req.body
     const id: string = req.params.userId
-    const result = await userService.updateUser(id, userData)
+    const result = await userService.updateSingleUser(id, userData)
     res.status(200).json({
       success: true,
       data: result,
@@ -86,7 +86,7 @@ const updateUser = async (req: Request, res: Response) => {
 const deleteUser = async (req: Request, res: Response) => {
   try {
     const id = req.params.userId
-    await userService.deleteUser(id)
+    await userService.deleteSingleUser(id)
     res.status(200).json({
       success: true,
       data: null,
