@@ -1,45 +1,123 @@
-import { userModel } from '../user.model'
-import { TUserData } from './user.interface'
+import mongoose from 'mongoose'
 
-const createUserIntoDB = async (user: TUserData) => {
-  const users = new userModel(user)
-  if (await users.isUserExists(user.userId)) {
-    throw new Error(`User ${user.userId} already exists`)
-  }
-  const result = await users.save()
+import TUser, { TProduct } from './user.interface'
+import user from '../user.model'
+const getUsers = async () => {
+  const result = await user.find()
   return result
 }
-//get all users from DB
-const getAllUsersFromDB = async () => {
-  const result = await userModel.find()
-  return result
-}
-//get single user from DB
-const getSingleUserFromDB = async (id: number) => {
-  const result = await userModel.findOne({ userId: id })
-  return result
-}
-//delete single user from DB
-const deletedStudentFromDB = async (id: number) => {
-  const result = await userModel.updateOne({ userId: id }, { isActive: false })
-  return result
-}
-const updateUserDB = async (id: number, Userdata: object) => {
-  const result = await userModel.updateOne(
-    { userId: id, isActive: true },
 
-    { $set: Userdata },
+const createUser = async (userData: TUser) => {
+  const result = await user.create(userData)
+  return result
+}
+const getUser = async (id: string) => {
+  const result = await user.find({
+    _id: new mongoose.Types.ObjectId(id),
+    isActive: true,
+  })
+  return result
+}
+
+const updateUser = async (id: string, userData: object) => {
+  const updatedData = await user.updateOne(
+    {
+      _id: new mongoose.Types.ObjectId(id),
+      isActive: true,
+    },
+    { $set: userData },
   )
-  console.log(result)
-  if (result.modifiedCount === 1) {
-    const UpdatedResult = await userModel.findOne({ userId: id })
-    return UpdatedResult
+  if (updatedData.modifiedCount === 1) {
+    const result = await user.find({
+      _id: new mongoose.Types.ObjectId(id),
+      isActive: true,
+    })
+    return result
+  } else if (
+    updatedData.modifiedCount === 0 &&
+    updatedData.matchedCount === 1
+  ) {
+    return Promise.reject('You give Same data')
+  } else {
+    return Promise.reject('user Not Found')
   }
 }
-export const userService = {
-  createUserIntoDB,
-  getAllUsersFromDB,
-  getSingleUserFromDB,
-  deletedStudentFromDB,
-  updateUserDB,
+
+const deleteUser = async (id: string) => {
+  const existUser = await user.findOne({
+    _id: new mongoose.Types.ObjectId(id),
+    isActive: true,
+  })
+  if (existUser) {
+    const result = await user.findByIdAndUpdate(id, { isActive: false })
+
+    return result
+  } else {
+    return Promise.reject('User not found')
+  }
 }
+const getOrders = async (id: string) => {
+  const existUser = await user.findById(id)
+  if (existUser) {
+    const result = await user.findOne(
+      { _id: new mongoose.Types.ObjectId(id) },
+      { orders: -1 },
+    )
+
+    return result
+  } else {
+    return Promise.reject('User Not Found')
+  }
+}
+
+const addOrders = async (id: string, product: TProduct) => {
+  const existUser = await user.findById(id)
+  if (existUser && product) {
+    await user.findByIdAndUpdate(
+      id,
+      {
+        $push: { orders: product },
+      },
+      { new: true, runValidators: true },
+    )
+
+    return product
+  }
+}
+const getTotalPrice = async (id: string) => {
+  const existUser = await user.findById(id)
+  if (existUser) {
+    const totalPriceAggregate = await user.aggregate([
+      { $match: { _id: new mongoose.Types.ObjectId(id) } },
+      { $project: { orders: true } },
+      { $unwind: '$orders' },
+      {
+        $addFields: {
+          totalCostSingleProduct: {
+            $multiply: ['$orders.price', '$orders.quantity'],
+          },
+        },
+      },
+      {
+        $group: { _id: null, totalPrice: { $sum: '$totalCostSingleProduct' } },
+      },
+    ])
+    const totalPrice = totalPriceAggregate[0].totalPrice
+
+    return { totalPrice }
+  } else {
+    return Promise.reject('User Not found')
+  }
+}
+const userService = {
+  getUsers,
+  createUser,
+  getUser,
+  updateUser,
+  deleteUser,
+  getOrders,
+  addOrders,
+  getTotalPrice,
+}
+
+export default userService

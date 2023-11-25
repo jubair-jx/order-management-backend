@@ -1,109 +1,179 @@
 import { Request, Response } from 'express'
-import { userService } from './user.services'
-import userDataValidationSchema from './user.validation'
 
+import userValidationSchema from './user.validation'
+import userService from './user.services'
+
+const getUsers = async (req: Request, res: Response) => {
+  try {
+    const result = await userService.getUsers()
+    res.status(201).json({
+      success: true,
+      data: result,
+      message: 'Get All User Successfully',
+    })
+  } catch (error) {
+    res.status(500).json({
+      success: false,
+      message: 'Something went wrong',
+      error: {
+        code: 500,
+        description: error,
+      },
+    })
+  }
+}
 const createUser = async (req: Request, res: Response) => {
   try {
-    const user = req.body.user
-    //data validation with zod
-    const zodParseData = userDataValidationSchema.parse(user)
-    const result = await userService.createUserIntoDB(zodParseData)
-    res.status(200).json({
-      success: true,
-      message: 'User created successfully!',
-      data: result,
-    })
-  } catch (err: any) {
-    res.status(401).json({
-      success: false,
-      message: err.message || 'Something has wrong',
-      error: err,
-    })
-  }
+    const { user } = req.body
 
-  //will call service function to send data
-}
-//get all users
-const getAllusers = async (req: Request, res: Response) => {
-  try {
-    const result = await userService.getAllUsersFromDB()
-
-    res.status(200).json({
+    const userValidation = userValidationSchema.parse(user)
+    const result = await userService.createUser(userValidation)
+    res.status(201).json({
       success: true,
-      message: 'Users fetched successfully!',
       data: result,
+      message: 'User Created Successfully',
     })
-  } catch (err: any) {
-    res.status(401).json({
+  } catch (error) {
+    res.status(500).json({
       success: false,
-      message: err.message || 'Something has wrong',
-      error: err,
+      message: 'Something went wrong',
+      error: error,
     })
   }
 }
-//get single users
-const getSingleUser = async (req: Request, res: Response) => {
+const getUser = async (req: Request, res: Response) => {
   try {
-    const { userId } = req.params
-    // console.log(typeof userId)
-    // const id = Number(userId)
-    // console.log(studentId)
-    const result = await userService.getSingleUserFromDB(Number(userId))
+    const id = req.params.userId
+    const result = await userService.getUser(id)
     res.status(200).json({
       success: true,
-      message: 'Single User Data Fetch done',
       data: result,
+      message: 'Get User Success Fully',
     })
-  } catch (err: any) {
+  } catch (error) {
     res.status(404).json({
       success: false,
-      message: err.message || 'User Not Found',
-      error: err,
+      message: 'User not found',
+      error: {
+        code: 404,
+        description: error,
+      },
     })
   }
 }
-//get single Data delete from DB
-const deletedSingleUser = async (req: Request, res: Response) => {
-  try {
-    const { userId } = req.params
 
-    const result = await userService.deletedStudentFromDB(Number(userId))
-    res.status(200).json({
-      success: true,
-      message: 'User deleted successfully',
-      data: result,
-    })
-  } catch (err: any) {
-    res.status(401).json({
-      success: false,
-      message: err.message || 'Something has wrong',
-      error: err,
-    })
-  }
-}
-//get update data from DB
-const updateUserInfoDB = async (req: Request, res: Response) => {
+const updateUser = async (req: Request, res: Response) => {
   try {
-    const { userId } = req.params
-    const body = req.body
-    const result = await userService.updateUserDB(Number(userId), body)
+    const userData = req.body
+    const id: string = req.params.userId
+    const result = await userService.updateUser(id, userData)
     res.status(200).json({
       success: true,
-      message: 'User Updated successfully',
       data: result,
+      message: 'Updated user successfully',
     })
-  } catch (err: any) {
-    res.status(401).json({
+  } catch (error) {
+    res.status(404).json({
       success: false,
-      message: err.message || 'Something has wrong',
-      error: err,
+      message: 'User not found',
+      error: {
+        code: 404,
+        description: error,
+      },
     })
   }
 }
-export const userController = {
-  createUser,
-  getAllusers,
-  getSingleUser,
-  deletedSingleUser,
-  updateUserInfoDB,
+const deleteUser = async (req: Request, res: Response) => {
+  try {
+    const id = req.params.userId
+    await userService.deleteUser(id)
+    res.status(200).json({
+      success: true,
+      data: null,
+      message: 'User deleted successfully',
+    })
+  } catch (error) {
+    res.status(404).json({
+      success: false,
+      message: 'User not found',
+      error: {
+        code: 404,
+        description: error,
+      },
+    })
+  }
 }
+
+const getOrders = async (req: Request, res: Response) => {
+  try {
+    const id = req.params.userId
+    const result = await userService.getOrders(id)
+    res.status(200).json({
+      success: true,
+      data: result,
+      message: 'Order Get successfully',
+    })
+  } catch (error) {
+    res.status(404).json({
+      success: false,
+      message: 'User not found',
+      error: {
+        code: 404,
+        description: 'User not found!',
+      },
+    })
+  }
+}
+const addOrders = async (req: Request, res: Response) => {
+  try {
+    const id = req.params.userId
+    const product = req.body
+    await userService.addOrders(id, product)
+    res.status(200).json({
+      success: true,
+      data: null,
+      message: 'Order created successfully!',
+    })
+  } catch (error) {
+    res.status(404).json({
+      success: false,
+      message: 'User not found',
+      error: {
+        code: 404,
+        description: 'User not found!',
+      },
+    })
+  }
+}
+const totalPrice = async (req: Request, res: Response) => {
+  try {
+    const id = req.params.userId
+    const result = await userService.getTotalPrice(id)
+    res.status(200).json({
+      success: true,
+      data: result,
+      message: 'Get total Price successfully',
+    })
+  } catch (error) {
+    res.status(404).json({
+      success: false,
+      message: 'User not found',
+      error: {
+        code: 404,
+        description: 'User not found!',
+      },
+    })
+  }
+}
+
+const userController = {
+  getUsers,
+  createUser,
+  getUser,
+  updateUser,
+  deleteUser,
+  getOrders,
+  addOrders,
+  totalPrice,
+}
+export default userController

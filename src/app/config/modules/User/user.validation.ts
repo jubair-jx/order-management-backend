@@ -1,36 +1,30 @@
 import { z } from 'zod'
 
-// Define Zod schema for TFullName
-const fullNameValidationSchema = z.object({
-  firstName: z.string().min(3).max(10),
-  lastName: z.string().min(3).max(10),
+const userFullNameValidationSchema = z.object({
+  firstName: z.string().min(1).max(20),
+  lastName: z.string().min(1).max(20),
 })
 
-// Define Zod schema for TAddressInfo
-const addressInfoValidationSchema = z.object({
-  street: z.string().min(1),
-  city: z.string().min(1),
-  country: z.string().min(1),
+const userAddressValidationSchema = z.object({
+  city: z.string().min(1).max(50),
+  street: z.string().min(1).max(255),
+  country: z.string().min(1).max(30),
 })
 
-// Define Zod schema for TOrder
-const orderValidationSchema = z.object({
-  productName: z.string().min(1),
-  price: z.number(),
-  quantity: z.number(),
-})
+const isValidUsername = (value: string) => /^[a-zA-Z0-9_-]+$/.test(value)
 
-// Define Zod schema for TUserData
-export const userDataValidationSchema = z.object({
+const userValidationSchema = z.object({
   userId: z.number(),
-  username: z.string(),
-  password: z.string().max(20),
-  fullName: fullNameValidationSchema,
+  username: z.string().min(5).refine(isValidUsername, {
+    message: 'Username must not contain spaces or symbols',
+  }),
+  password: z.string(),
+  fullName: userFullNameValidationSchema,
   age: z.number(),
   email: z.string().email(),
   isActive: z.boolean(),
-  hobbies: z.array(z.string().min(1)),
-  address: addressInfoValidationSchema,
-  order: z.array(orderValidationSchema),
+  hobbies: z.array(z.string()),
+  address: userAddressValidationSchema,
 })
-export default userDataValidationSchema
+
+export default userValidationSchema

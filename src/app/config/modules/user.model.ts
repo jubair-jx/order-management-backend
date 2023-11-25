@@ -1,118 +1,112 @@
 import { Schema, model } from 'mongoose'
-import {
-  TAddressInfo,
-  TFullName,
-  TOrder,
-  TUserData,
-  userMethods,
-  userTypeModel,
-} from './User/user.interface'
+
 import bcrypt from 'bcrypt'
+
+import TUser, { TAddress, TFullName, TProduct } from './User/user.interface'
 import config from '..'
-//name schema information
-const nameSchema = new Schema<TFullName>(
+
+const userFullNameSchema = new Schema<TFullName>(
   {
     firstName: {
       type: String,
-      required: [true, 'First Name is required'],
-      maxlength: [10, 'More than 10 characters are not allowed'],
-      minlength: [3, 'More than 3 characters are not allowed'],
-      trim: true,
+      required: [true, 'You did not Provide Your First Name '],
     },
     lastName: {
       type: String,
-      required: [true, 'Last Name is required'],
-      max: [10, 'More than 10 characters are not allowed'],
-      min: [3, 'More than 3 characters are not allowed'],
-      trim: true,
+      required: [true, 'You did not Provide Your Last Name '],
     },
-  },
-  {
-    _id: false,
-  },
-)
-//addressInformation
-const addressInfoSchema = new Schema<TAddressInfo>(
-  {
-    street: { type: String, required: true },
-    city: { type: String, required: true },
-    country: { type: String, required: true },
-  },
-  {
-    _id: false,
-  },
-)
-//order information
-const orderInfoSchema = new Schema<TOrder>(
-  {
-    productName: { type: String, required: true },
-    price: { type: Number, required: true },
-    quantity: { type: Number, required: true },
   },
   { _id: false },
 )
-//main userSchema
-const userSchema = new Schema<TUserData, userTypeModel, userMethods>({
-  userId: { type: Number, required: true, unique: true },
-  username: { type: String, required: true, unique: true },
-  password: {
+
+const userAddressSchema = new Schema<TAddress>(
+  {
+    city: { type: String, required: [true, 'Please Provide Your City'] },
+    street: { type: String, required: [true, 'Please Provide Your Street'] },
+    country: { type: String, required: [true, 'Please Provide Your Country'] },
+  },
+  { _id: false },
+)
+
+const productSchema = new Schema<TProduct>(
+  {
+    productName: {
+      type: String,
+      required: [true, 'you must Provide a Product Name'],
+    },
+    price: { type: Number, required: [true, 'You Must provide a Price'] },
+    quantity: {
+      type: Number,
+      required: [true, 'You Must Provide Quantity'],
+      default: 1,
+    },
+  },
+  { _id: false },
+)
+
+const userSchema = new Schema<TUser>({
+  userId: {
+    type: Number,
+    required: [true, 'Please Provide Your User'],
+    unique: true,
+  },
+  username: {
     type: String,
-    required: true,
-    maxlength: [20, 'Password More than 20 Charc Will be Accepted'],
+    required: [true, 'Please Provide Username'],
+    unique: true,
+    minlength: [5, 'you user at least 5 character'],
   },
+  password: { type: String },
   fullName: {
-    type: nameSchema,
-    required: true,
+    type: userFullNameSchema,
+    required: [true, 'Please Provide Full Name'],
   },
-  age: { type: Number, required: true },
-  email: { type: String, required: true, unique: true },
+  age: { type: Number, required: [true, 'Please Provide Your Age'] },
+  email: {
+    type: String,
+    required: [true, 'Please Provide Your Email'],
+    unique: true,
+  },
   isActive: {
     type: Boolean,
-
-    default: false,
+    required: [true, 'Please Activate'],
+    default: true,
   },
-  hobbies: { type: [String], required: true },
-  address: addressInfoSchema,
-  order: [orderInfoSchema],
+  hobbies: [],
+  address: {
+    type: userAddressSchema,
+    required: [true, 'Please Provide Your Address'],
+  },
+  orders: [productSchema],
 })
-//pre save middleware will on create
-
 userSchema.pre('save', async function (next) {
-  //hashing password and save into DB
   const user = this
   user.password = await bcrypt.hash(user.password, Number(config.saltKey))
-
   next()
 })
-
+// userSchema.pre('findOneAndUpdate', { document: true }, async function (next) {
+//   const user = this;
+//   console.log(this);
+// });
 userSchema.post('save', function (doc, next) {
-  // console.log(this, "Post hook : we saved our Data");
   doc.password = undefined as unknown as string
-  doc.order = undefined as unknown as []
+  doc.orders = undefined as unknown as []
   next()
 })
-
-userSchema.methods.isUserExists = async function (id: number) {
-  const existingUser = await userModel.findOne({ userId: id })
-  return existingUser
-}
-
 userSchema.pre('find', function (next) {
-  this.find({ isActive: { $eq: true } }).projection({ order: false })
-
+  this.find({ isActive: { $ne: false } }).projection({
+    password: false,
+    orders: false,
+  })
   next()
 })
-userSchema.pre('findOne', function (next) {
-  // console.log(next);
-  this.find({ isActive: { $ne: false } }).projection({ order: false })
-  next()
-})
-userSchema.pre('aggregate', function (next) {
-  // console.log(next);
-  // this.find({ isDeleted: { $ne: true } });
-  this.pipeline().unshift({ $match: { isActive: { $ne: true } } })
+userSchema.pre('findOne', async function (next) {
+  this.findOne({ isActive: { $ne: false } }).projection({
+    orders: true,
+    _id: false,
+  })
   next()
 })
 
-//Now we will make a model based on this Schema
-export const userModel = model<TUserData, userTypeModel>('user', userSchema)
+const user = model<TUser>('user', userSchema)
+export default user

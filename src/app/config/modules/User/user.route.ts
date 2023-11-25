@@ -1,15 +1,13 @@
 import express from 'express'
-import { userController } from './user.controller'
+import userController from './user.controller'
 
-const userRouter = express.Router()
-//wil call controller function
-userRouter.post('/create-user', userController.createUser)
-//get all users routes
-userRouter.get('/', userController.getAllusers)
-//get single user routes
-userRouter.get('/:userId', userController.getSingleUser)
-//delete data from DB
-userRouter.delete('/:userId', userController.deletedSingleUser)
-//update data from DB
-userRouter.patch('/:userId', userController.updateUserInfoDB)
-export default userRouter
+export const userRoute = express.Router()
+
+userRoute.get('/', userController.getUsers)
+userRoute.post('/', userController.createUser)
+userRoute.get('/:userId', userController.getUser)
+userRoute.patch('/:userId', userController.updateUser) //TODO:schema pre hooks not working
+userRoute.delete('/:userId', userController.deleteUser)
+userRoute.get('/:userId/orders', userController.getOrders)
+userRoute.post('/:userId/orders', userController.addOrders)
+userRoute.get('/:userId/orders/total-price', userController.totalPrice)
