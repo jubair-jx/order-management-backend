@@ -4,6 +4,8 @@ import {
   TFullName,
   TOrder,
   TUserData,
+  userMethods,
+  userTypeModel,
 } from './User/user.interface'
 import bcrypt from 'bcrypt'
 import config from '..'
@@ -50,7 +52,7 @@ const orderInfoSchema = new Schema<TOrder>(
   { _id: false },
 )
 //main userSchema
-const userSchema = new Schema<TUserData>({
+const userSchema = new Schema<TUserData, userTypeModel, userMethods>({
   userId: { type: Number, required: true, unique: true },
   username: { type: String, required: true, unique: true },
   password: {
@@ -65,9 +67,9 @@ const userSchema = new Schema<TUserData>({
   age: { type: Number, required: true },
   email: { type: String, required: true, unique: true },
   isActive: {
-    type: String,
-    enum: ['active', 'not'],
-    default: 'active',
+    type: Boolean,
+
+    default: false,
   },
   hobbies: { type: [String], required: true },
   address: addressInfoSchema,
@@ -83,5 +85,34 @@ userSchema.pre('save', async function (next) {
   next()
 })
 
+userSchema.post('save', function (doc, next) {
+  // console.log(this, "Post hook : we saved our Data");
+  doc.password = undefined as unknown as string
+  doc.order = undefined as unknown as []
+  next()
+})
+
+userSchema.methods.isUserExists = async function (id: number) {
+  const existingUser = await userModel.findOne({ userId: id })
+  return existingUser
+}
+
+userSchema.pre('find', function (next) {
+  this.find({ isActive: { $eq: true } }).projection({ order: false })
+
+  next()
+})
+userSchema.pre('findOne', function (next) {
+  // console.log(next);
+  this.find({ isActive: { $ne: false } }).projection({ order: false })
+  next()
+})
+userSchema.pre('aggregate', function (next) {
+  // console.log(next);
+  // this.find({ isDeleted: { $ne: true } });
+  this.pipeline().unshift({ $match: { isActive: { $ne: true } } })
+  next()
+})
+
 //Now we will make a model based on this Schema
-export const userModel = model<TUserData>('user', userSchema)
+export const userModel = model<TUserData, userTypeModel>('user', userSchema)
