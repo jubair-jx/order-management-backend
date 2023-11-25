@@ -9,10 +9,13 @@ Before you begin, ensure you have the following installed:
 - Node.js
 - npm or yarn
 - MongoDB
+- TypeScript
+- Cors
+- Validation Packages
+- Zod
+- ExpressJS
 
-## Getting Started
-
-### Installation
+### File Path
 
 order-management-backend/
 ├── src/
@@ -26,6 +29,8 @@ order-management-backend/
 ├── package.json
 ├── tsconfig.json
 └── README.md
+
+## Getting Started
 
 ### Run Project
 

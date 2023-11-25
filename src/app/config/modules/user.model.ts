@@ -5,7 +5,7 @@ import bcrypt from 'bcrypt'
 import TUser, { TAddress, TFullName, TProduct } from './User/user.interface'
 import config from '..'
 
-const userFullNameSchema = new Schema<TFullName>(
+const userNameSchema = new Schema<TFullName>(
   {
     firstName: {
       type: String,
@@ -58,7 +58,7 @@ const userSchema = new Schema<TUser>({
   },
   password: { type: String },
   fullName: {
-    type: userFullNameSchema,
+    type: userNameSchema,
     required: [true, 'Please Provide Full Name'],
   },
   age: { type: Number, required: [true, 'Please Provide Your Age'] },
@@ -84,10 +84,7 @@ userSchema.pre('save', async function (next) {
   user.password = await bcrypt.hash(user.password, Number(config.saltKey))
   next()
 })
-// userSchema.pre('findOneAndUpdate', { document: true }, async function (next) {
-//   const user = this;
-//   console.log(this);
-// });
+
 userSchema.post('save', function (doc, next) {
   doc.password = undefined as unknown as string
   doc.orders = undefined as unknown as []

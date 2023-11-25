@@ -1,6 +1,6 @@
 import { z } from 'zod'
 
-const userFullNameValidationSchema = z.object({
+const userNameValidationSchema = z.object({
   firstName: z.string().min(1).max(20),
   lastName: z.string().min(1).max(20),
 })
@@ -19,7 +19,7 @@ const userValidationSchema = z.object({
     message: 'Username must not contain spaces or symbols',
   }),
   password: z.string(),
-  fullName: userFullNameValidationSchema,
+  fullName: userNameValidationSchema,
   age: z.number(),
   email: z.string().email(),
   isActive: z.boolean(),

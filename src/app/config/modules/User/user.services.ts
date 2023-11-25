@@ -2,14 +2,15 @@ import mongoose from 'mongoose'
 
 import TUser, { TProduct } from './user.interface'
 import user from '../user.model'
-//get all users
-const getUsers = async () => {
-  const result = await user.find()
-  return result
-}
+
 //create a new user
 const createNewUser = async (userData: TUser) => {
   const result = await user.create(userData)
+  return result
+}
+//get all users
+const getUsers = async () => {
+  const result = await user.find()
   return result
 }
 // get a single user
