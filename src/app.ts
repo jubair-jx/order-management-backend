@@ -10,6 +10,15 @@ app.use(express.json())
 //main User Router
 app.use('/api/users', userRoute)
 //no routes match
+
+//root routes
+app.get('/', (req, res) => {
+  res.status(200).json({
+    success: true,
+    message: 'Yeah Bruh your server is "OK" !',
+  })
+})
+
 app.all('*', (req, res, next) => {
   res.status(400).json({
     success: false,
